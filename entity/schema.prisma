@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users{
+  id_user Int @id @default(autoincrement())
+  username String   
+  email String @unique
+  password String
+  id_point Int? @unique 
+  address String
+  orders Orders?
+  point Point? @relation(fields: [id_point], references: [id_point])
+}
+
+model Orders{
+  id_order Int @id @default(autoincrement()) 
+  id_user  Int @unique
+  total_point Int
+  created_at DateTime @default(now())
+  users Users @relation(fields: [id_user], references: [id_user])
+  order_item OrderItem[] 
+}
+
+model OrderItem {
+  id_order_item Int @id @default(autoincrement())
+  id_order Int 
+  id_book Int @unique
+  id_transaction Int?
+  quantity Int
+  unit_point Int
+  order Orders @relation(fields: [id_order], references: [id_order])
+  book Books @relation(fields: [id_book], references: [id_book])
+  transaction Transaction? @relation(fields: [id_transaction], references: [id_transaction], onDelete: SetNull, onUpdate: Cascade)
+}
+model Tags{
+  id_tag Int @id @default(autoincrement())
+  tag_name String 
+  books Books[]
+}
+
+model Books{
+  id_book Int @id @default(autoincrement())
+  title String
+  writer String
+  cover_image String
+  point Int
+  stock_quantity Int
+  id_tag Int
+  created_at DateTime @default(now())
+  tags Tags @relation(fields: [id_tag], references: [id_tag])
+  order_item OrderItem?
+}
+
+model Point{
+  id_point Int @id @default(autoincrement())
+  id_user Int @unique
+  point Int
+  users Users?
+  transaction Transaction[]
+}
+
+model Transaction {
+  id_transaction Int @id @default(autoincrement()) @unique
+  id_point Int
+  total_point Int 
+  order_items OrderItem[] 
+  point Point @relation(fields: [id_point], references: [id_point])
+  created_at DateTime @default(now())
+}
